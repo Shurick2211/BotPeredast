@@ -1,8 +1,5 @@
-
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
@@ -10,7 +7,6 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
@@ -56,8 +52,11 @@ public class Bot extends TelegramLongPollingBot {
             System.out.println(today+" : "+update.getMessage().getFrom().getFirstName() + ": " + update.getMessage().getChatId()
                     ) ;
             if (update.getMessage().getChatId().toString().equals(SUPERUSER)) {
-                if (user != null)
+                if (user != null) {
                     sendMess.send(user.getChatId(), update.getMessage().getText());
+                user=null;
+                }
+                sendMess.send(SUPERUSER, "Нажми кнопку ОТВЕТИТЬ!");
                 System.out.println(update.getMessage().getText());
             } else {
                 String mess = update.getMessage().getText() + "=" + update.getMessage().getChatId() + "/" + update.getMessage().getFrom().getFirstName();
