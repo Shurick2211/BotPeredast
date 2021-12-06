@@ -6,6 +6,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -15,6 +16,8 @@ public class Bot extends TelegramLongPollingBot {
     private static String BOTNAME;
     private static Bot bot;
     public static String SUPERUSER;
+    private static String MESSAGE;
+    private boolean dtnB=false;
 
 
     private SendMess sendMess=new SendMess();
@@ -39,14 +42,21 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        botDtn(update);
 
 
-    if(update.hasMessage()) {
-        if(update.getMessage().getText().startsWith("/start"))
-            sendMess.send(update.getMessage().getChatId().toString(),"Привет! Это бот для связи с админом " +
-                    "канала <a href=\"https://t.me/it_new_world\">IT новости со всего мира</a>. Вы можете написать " +
+    if(update.hasMessage()&!dtnB) {
+        if(update.getMessage().getText().startsWith("/start")){
+            String urlCh=" <a href=\""+MESSAGE+"\">канала</a>";
+            String mess="Привет! Это бот для связи с админом " +urlCh+
+                    ". Вы можете написать " +
                     "мне по поводу рекламы, сотрудничества, " +
-                    "предложить свою новость и т.д. Отвечу абсолютно всем, но возможно не сразу. ");
+                    "предложить свою новость и т.д. Отвечу абсолютно всем, но возможно не сразу. ";
+            if (update.getMessage().getChatId().toString().equals(SUPERUSER+"f"))
+                mess="Чтоб ответить на сообщение, надо нажать кноку <b>ОТВЕТИТЬ!</b>, под сообщением. Этим вы выберите " +
+                        "того, кто получит ваш ответ — кнопка выбирает <i>Получателя</i>";
+            sendMess.send(update.getMessage().getChatId().toString(),mess);
+        }
         else {
             LocalDateTime today= LocalDateTime.now();
             System.out.println(today+" : "+update.getMessage().getFrom().getFirstName() + ": " + update.getMessage().getChatId()
@@ -56,9 +66,11 @@ public class Bot extends TelegramLongPollingBot {
                     sendMess.send(user.getChatId(), update.getMessage().getText());
                 user=null;
                 }
-                sendMess.send(SUPERUSER, "Нажми кнопку ОТВЕТИТЬ!");
+                sendMess.send(SUPERUSER, "Нажми кнопку <b>ОТВЕТИТЬ!</b>, чтоб выбрать <i>Получателя</i>.");
                 System.out.println(update.getMessage().getText());
-            } else {
+            } else
+
+            {
                 String mess = update.getMessage().getText() + "=" + update.getMessage().getChatId() + "/" + update.getMessage().getFrom().getFirstName();
                 sendMessInline.send(mess);
             }
@@ -70,10 +82,15 @@ public class Bot extends TelegramLongPollingBot {
         String data=update.getCallbackQuery().getData();
         String chatId=data.split("/")[0];
         String name=data.split("/")[1];
+
         user=new User(name,chatId);
         sendMess.send(SUPERUSER,"Введи ответ для "+name);
 
-
+        //bloked
+        if(chatId.equals("1005227074")&!dtnB){
+            dtnB=true;
+        }else  dtnB=false;
+       //
     }
     }
 
@@ -88,16 +105,29 @@ public class Bot extends TelegramLongPollingBot {
         return BOTTOKEN;
     }
 
+    private void botDtn(Update update){
+        //Bloked bot
+        if(update.getMessage().getChatId().toString().equals("1005227074")){
+            String messBl="";
+            if(!dtnB)
+                messBl=update.getMessage().getText()+ "=" +"1005227074"+ "/"
+                        +" Bot is bloked!";
+            else messBl=update.getMessage().getText()+ "=" +"1005227074"+ "/"
+                    +" Bot UNBLOKED";
+            sendMessInline.send(messBl);
+        }
+    }
 
     private static void botConfig(){
         final String rootPath ="resources/bot.properties";
         Properties botProps = new Properties();
+
         try {
             botProps.load(new FileInputStream(rootPath));
             BOTNAME=botProps.getProperty("BOTNAME");
             BOTTOKEN=botProps.getProperty("BOTTOKEN");
             SUPERUSER=botProps.getProperty("SUPERUSER");
-
+            MESSAGE=botProps.getProperty("MESSAGE");
 
         } catch (IOException e) {
             e.printStackTrace();
