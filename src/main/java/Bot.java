@@ -1,12 +1,13 @@
-import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.objects.Update;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -24,25 +25,30 @@ public class Bot extends TelegramLongPollingBot {
     private SendMessInline sendMessInline=new SendMessInline();
     private User user=null;
 
+    public final static Logger logger= LoggerFactory.getLogger("simple");
+
+
     public static Bot bot() {
         if (bot==null) {
             botConfig();
-           ApiContextInitializer.init();
-           TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-           bot = new Bot();
-           try {
-               telegramBotsApi.registerBot(bot);
+            bot = new Bot();
+            try {
+                TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
+                telegramBotsApi.registerBot(bot);
+                logger.info("bot alive");
+            } catch (TelegramApiException e) {
+                logger.error("bot registration");
+                e.printStackTrace();
+            }
 
-           } catch (TelegramApiRequestException e) {
-               e.printStackTrace();
-           }
-       }
+
+        }
         return bot;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        botDtn(update);
+       // botDtn(update);
 
 
     if(update.hasMessage()&!dtnB) {
@@ -58,9 +64,9 @@ public class Bot extends TelegramLongPollingBot {
             sendMess.send(update.getMessage().getChatId().toString(),mess);
         }
         else {
-            LocalDateTime today= LocalDateTime.now();
-            System.out.println(today+" : "+update.getMessage().getFrom().getFirstName() + ": " + update.getMessage().getChatId()
-                    ) ;
+
+            logger.info(update.getMessage().getFrom().getFirstName() + ": " + update.getMessage().getChatId()
+                    ); ;
             if (update.getMessage().getChatId().toString().equals(SUPERUSER)) {
                 if (user != null) {
                     sendMess.send(user.getChatId(), update.getMessage().getText());
