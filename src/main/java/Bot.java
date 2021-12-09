@@ -2,13 +2,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
@@ -17,7 +18,7 @@ public class Bot extends TelegramLongPollingBot {
     private static String BOTNAME;
     private static Bot bot;
     public static String SUPERUSER;
-    private static String MESSAGE;
+    public static String MESSAGE;
     private boolean dtnB=false;
 
 
@@ -26,6 +27,7 @@ public class Bot extends TelegramLongPollingBot {
     private User user=null;
 
     public final static Logger logger= LoggerFactory.getLogger("simple");
+
 
 
     public static Bot bot() {
@@ -53,7 +55,7 @@ public class Bot extends TelegramLongPollingBot {
 
     if(update.hasMessage()&!dtnB) {
         if(update.getMessage().getText().startsWith("/start")){
-            String urlCh=" <a href=\""+MESSAGE+"\">канала</a>";
+            String urlCh=" <a href="+MESSAGE+">канала</a>";
             String mess="Привет! Это бот для связи с админом " +urlCh+
                     ". Вы можете написать " +
                     "мне по поводу рекламы, сотрудничества, " +
